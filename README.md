@@ -36,3 +36,9 @@ In another terminal, open the project folder and run:
 Use a new email and a password of at least 12 characters. Sign in with that account and open http://localhost:5000/admin.
 
 The initial model uses synthetic data; real-world accuracy has not been validated.
+
+## Deploy on Render
+
+Use the repository’s `render.yaml` with the Docker runtime. Set your admin email when prompted; the admin password is generated in Render’s environment variables.
+
+The free plan loses SQLite accounts, history, feedback, and model updates when the service restarts or sleeps.

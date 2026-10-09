@@ -329,3 +329,53 @@ def test_actual_background_schedule(app):
         assert app.extensions["engine"].metadata()["version"] != before
     finally:
         worker.shutdown()
+
+
+def test_cloud_admin_bootstrap(tmp_path, monkeypatch):
+    from auth import verify_password
+
+    monkeypatch.setenv("BOOTSTRAP_ADMIN_EMAIL", "owner@example.com")
+    monkeypatch.setenv("BOOTSTRAP_ADMIN_PASSWORD", "Cloud-password-123")
+    config = {
+        "TESTING": True,
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///" + str(tmp_path / "cloud.db"),
+        "MODEL_PATH": tmp_path / "model.joblib",
+        "ENABLE_SCHEDULER": False,
+        "RATELIMIT_ENABLED": False,
+    }
+    first = create_app(config)
+    try:
+        with first.app_context():
+            admin = db.session.scalar(
+                select(User).where(User.email == "owner@example.com")
+            )
+            assert admin.role == "admin"
+            assert verify_password(admin.password_hash, "Cloud-password-123")
+            admin.role = "user"
+            db.session.commit()
+        monkeypatch.setenv("BOOTSTRAP_ADMIN_PASSWORD", "Changed-password-456")
+        second = create_app(config)
+        try:
+            with second.app_context():
+                users = list(db.session.scalars(select(User)))
+                assert len(users) == 1
+                assert (
+                    users[0].role == "user"
+                )  # Startup never escalates existing accounts.
+                assert verify_password(users[0].password_hash, "Cloud-password-123")
+        finally:
+            second.extensions["tasks"].pool.shutdown(wait=True)
+    finally:
+        first.extensions["tasks"].pool.shutdown(wait=True)
+
+
+def test_cloud_admin_requires_both_secrets(tmp_path, monkeypatch):
+    monkeypatch.setenv("BOOTSTRAP_ADMIN_EMAIL", "owner@example.com")
+    monkeypatch.delenv("BOOTSTRAP_ADMIN_PASSWORD", raising=False)
+    with pytest.raises(RuntimeError, match="BOOTSTRAP_ADMIN_PASSWORD"):
+        create_app(
+            {
+                "SQLALCHEMY_DATABASE_URI": "sqlite:///" + str(tmp_path / "invalid.db"),
+                "ENABLE_SCHEDULER": False,
+            }
+        )

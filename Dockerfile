@@ -5,8 +5,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr t
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt && python -m nltk.downloader -d /usr/local/share/nltk_data wordnet
 COPY . .
+RUN python train_model.py
 RUN useradd --create-home --uid 10001 truehire && mkdir -p /app/instance && chown -R truehire:truehire /app
 USER truehire
 EXPOSE 5000
 # One process is deliberate: scheduler and hot-swap registry are process-local.
-CMD ["gunicorn","--bind","0.0.0.0:5000","--workers","1","--threads","8","--timeout","60","--access-logfile","-","app:create_app()"]
+CMD ["python", "start_server.py"]

@@ -1,0 +1,26 @@
+# Free demo: SQLite and model updates are ephemeral on this plan.
+services:
+  - type: web
+    name: truehire
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: ENABLE_SCHEDULER
+        value: "true"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        generateValue: true
+      - key: BOOTSTRAP_ADMIN_NAME
+        value: Administrator

@@ -144,6 +144,36 @@ def create_app(test_config=None):
     app.extensions["limiter_instance"] = limiter
     with app.app_context():
         db.create_all()
+        # Optional cloud bootstrap: free Render services have no shell access.
+        # Credentials come only from host secrets, never from source defaults.
+        admin_email = os.environ.get("BOOTSTRAP_ADMIN_EMAIL", "").strip().lower()
+        admin_password = os.environ.get("BOOTSTRAP_ADMIN_PASSWORD", "")
+        if admin_email or admin_password:
+            if (
+                not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", admin_email)
+                or len(admin_email) > 254
+                or not 12 <= len(admin_password) <= 128
+            ):
+                raise RuntimeError(
+                    "Set a valid BOOTSTRAP_ADMIN_EMAIL and a BOOTSTRAP_ADMIN_PASSWORD of 12–128 characters."
+                )
+            existing_admin = db.session.scalar(
+                select(User).where(User.email == admin_email)
+            )
+            if existing_admin is None:
+                db.session.add(
+                    User(
+                        email=admin_email,
+                        name=os.environ.get(
+                            "BOOTSTRAP_ADMIN_NAME", "Administrator"
+                        ).strip()[:80]
+                        or "Administrator",
+                        password_hash=hash_password(admin_password),
+                        role="admin",
+                    )
+                )
+                db.session.commit()
+            # Existing accounts are never promoted or reset by startup.
         if not Path(app.config["MODEL_PATH"]).exists():
             initialize(app.config["DATA_DIR"], app.config["MODEL_PATH"])
         engine = ModelEngine(app.config["MODEL_PATH"])

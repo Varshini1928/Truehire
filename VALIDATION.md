@@ -4,7 +4,7 @@ Verified on 9 October 2026 using Python 3.12 and Chromium 140.
 
 ## Automated integration suite
 
-**29 tests passed, zero skipped.** Coverage includes:
+**31 tests passed, zero skipped.** Coverage includes:
 
 - PBKDF2 password storage; authentication, logout revocation, CSRF, origin rejection.
 - Private scan/feedback ownership and RBAC.
@@ -60,3 +60,9 @@ real-world 100% or 94% accuracy. Real-world validation remains required.
 The runnable source, Docker configuration, requirements, setup steps and
 single-instance operational constraints are included. This is a tested
 production-oriented foundation, not a certified enterprise deployment.
+
+## Render readiness
+
+Verified Gunicorn binds to the host-provided `PORT` and `/health` returns OK.
+Tested secret-based admin creation and confirmed startup never resets or promotes an existing account.
+Render YAML syntax and local configuration checked; Render CLI validation and the live deployment are pending.
