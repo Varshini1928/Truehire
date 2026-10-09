@@ -1,0 +1,25 @@
+{
+  "browser_errors": [],
+  "flows": [
+    "register",
+    "text scan",
+    "safety rule",
+    "feedback",
+    "real OCR upload",
+    "history",
+    "charts",
+    "mobile layouts",
+    "logout",
+    "admin login",
+    "background retraining",
+    "promote and demote"
+  ],
+  "measured_text_p95_ms": 0.9025320000546344,
+  "measured_image_p95_ms": 142.29,
+  "synthetic_model_metrics": {
+    "accuracy": 1,
+    "f1": 1,
+    "precision": 1,
+    "recall": 1
+  }
+}

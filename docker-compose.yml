@@ -1,0 +1,19 @@
+services:
+  truehire:
+    build: .
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      COOKIE_SECURE: "${COOKIE_SECURE:-false}"
+      ENABLE_SCHEDULER: "true"
+      INSTANCE_DIR: /app/instance
+    volumes:
+      - truehire_data:/app/instance
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+volumes:
+  truehire_data:
